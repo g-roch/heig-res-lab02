@@ -304,13 +304,17 @@ Vous pouvez aussi utiliser des captures Wireshark ou des fichiers snort.log.xxxx
 
 Considérer la règle simple suivante:
 
+```
 alert tcp any any -> any any (msg:"Mon nom!"; content:"Rubinstein"; sid:4000015; rev:1;)
+```
 
-**Question 3: Qu'est-ce qu'elle fait la règle et comment ça fonctionne ?**
+**Question 3**: Qu'est-ce qu'elle fait la règle et comment ça fonctionne ?
 
 ---
 
 **Reponse :**  
+
+Pour chaque paquet TCP, il vérifie 
 
 ---
 
