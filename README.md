@@ -118,7 +118,11 @@ include /etc/snort/rules/icmp2.rules
 
 Ensuite, créez le fichier de règles `icmp2.rules` dans le repertoire `/etc/snort/rules/` et rajoutez dans ce fichier le contenu suivant :
 
-`alert icmp any any -> any any (msg:"ICMP Packet"; sid:4000001; rev:3;)`
+```
+alert icmp any any -> any any (msg:"ICMP Packet"; sid:4000001; rev:3;)
+```
+
+
 
 On peut maintenant executer la commande :
 
@@ -304,7 +308,7 @@ Vous pouvez aussi utiliser des captures Wireshark ou des fichiers snort.log.xxxx
 
 Considérer la règle simple suivante:
 
-```
+```snortRules
 alert tcp any any -> any any (msg:"Mon nom!"; content:"Rubinstein"; sid:4000015; rev:1;)
 ```
 
@@ -312,54 +316,254 @@ alert tcp any any -> any any (msg:"Mon nom!"; content:"Rubinstein"; sid:4000015;
 
 ---
 
-**Reponse :**  
+**Réponse :**  
 
-Pour chaque paquet TCP, il vérifie 
+Pour chaque paquet TCP, il vérifie que le paquet contienne la string `Rubinstein` . Si c'est le cas il lève une alert avec comme message `Mon nom!`.
 
 ---
 
 Utiliser un éditeur et créer un fichier `myrules.rules` sur votre répertoire home. Rajouter une règle comme celle montrée avant mais avec votre nom ou un mot clé de votre préférence. Lancer snort avec la commande suivante :
 
-```
-sudo snort -c myrules.rules -i eth0
+```bash
+sudo snort -c myrules.rules -i eth1
 ```
 
-**Question 4: Que voyez-vous quand le logiciel est lancé ? Qu'est-ce que tous les messages affichés veulent dire ?**
+**Question 4**: Que voyez-vous quand le logiciel est lancé ? Qu'est-ce que tous les messages affichés veulent dire ?
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+```
+root@kali:/etc/snort/rules# sudo snort -c _myrules.rules  -i eth1
+Running in IDS mode
+
+        --== Initializing Snort ==--
+Initializing Output Plugins!
+Initializing Preprocessors!
+Initializing Plug-ins!
+Parsing Rules file "_myrules.rules"
+Tagged Packet Limit: 256
+Log directory = /var/log/snort
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+Initializing rule chains...
+1 Snort rules read
+    1 detection rules
+    0 decoder rules
+    0 preprocessor rules
+1 Option Chains linked into 1 Chain Headers
+0 Dynamic rules
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
++-------------------[Rule Port Counts]---------------------------------------
+|             tcp     udp    icmp      ip
+|     src       0       0       0       0
+|     dst       0       0       0       0
+|     any       1       0       0       0
+|      nc       0       0       0       0
+|     s+d       0       0       0       0
++----------------------------------------------------------------------------
+
++-----------------------[detection-filter-config]------------------------------
+| memory-cap : 1048576 bytes
++-----------------------[detection-filter-rules]-------------------------------
+| none
+-------------------------------------------------------------------------------
+
++-----------------------[rate-filter-config]-----------------------------------
+| memory-cap : 1048576 bytes
++-----------------------[rate-filter-rules]------------------------------------
+| none
+-------------------------------------------------------------------------------
+
++-----------------------[event-filter-config]----------------------------------
+| memory-cap : 1048576 bytes
++-----------------------[event-filter-global]----------------------------------
++-----------------------[event-filter-local]-----------------------------------
+| none
++-----------------------[suppression]------------------------------------------
+| none
+-------------------------------------------------------------------------------
+Rule application order: activation->dynamic->pass->drop->sdrop->reject->alert->log
+Verifying Preprocessor Configurations!
+
+[ Port Based Pattern Matching Memory ]
++-[AC-BNFA Search Info Summary]------------------------------
+| Instances        : 1
+| Patterns         : 1
+| Pattern Chars    : 5
+| Num States       : 5
+| Num Match States : 1
+| Memory           :   1.56Kbytes
+|   Patterns       :   0.04K
+|   Match Lists    :   0.07K
+|   Transitions    :   1.05K
++-------------------------------------------------
+pcap DAQ configured to passive.
+Acquiring network traffic from "eth1".
+Reload thread starting...
+Reload thread started, thread 0x7f3d8b849700 (11371)
+Decoding Ethernet
+
+        --== Initialization Complete ==--
+
+   ,,_     -*> Snort! <*-
+  o"  )~   Version 2.9.7.0 GRE (Build 149) 
+   ''''    By Martin Roesch & The Snort Team: http://www.snort.org/contact#team
+           Copyright (C) 2014 Cisco and/or its affiliates. All rights reserved.
+           Copyright (C) 1998-2013 Sourcefire, Inc., et al.
+           Using libpcap version 1.8.1
+           Using PCRE version: 8.39 2016-06-14
+           Using ZLIB version: 1.2.11
+
+Commencing packet processing (pid=11366)
+```
+
+On vois des indications sur ce que `snort` a chargé.
 
 ---
 
 Aller à un site web contenant dans son text votre nom ou votre mot clé que vous avez choisi (il faudra chercher un peu pour trouver un site en http...).
 
-**Question 5: Que voyez-vous sur votre terminal quand vous visitez le site ?**
+**Question 5**: Que voyez-vous sur votre terminal quand vous visitez le site ?
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+(Nous avons remplacer la chaine `Rubinstein` par `roch`, car nous connaissons un site web http contenant cette chaine)
+
+
+
+![](images/question_4_bis.jpg)
+
+
+
+Le message afficher dans le fichier de log contient l'ensemble du paquet correspondant à la règle snort (il y a 3 paquets, car nous avons chargé la page 3x). Ce qui est afficher est simplement l'interprétation de `tcpdump` des paquets
 
 ---
 
 Arrêter Snort avec `CTRL-C`.
 
-**Question 6: Que voyez-vous quand vous arrêtez snort ? Décrivez en détail toutes les informations qu'il vous fournit.**
+**Question 6**: Que voyez-vous quand vous arrêtez snort ? Décrivez en détail toutes les informations qu'il vous fournit.
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+```
+^C*** Caught Int-Signal
+WARNING: No preprocessors configured for policy 0.
+===============================================================================
+Run time for packet processing was 834.635896 seconds
+Snort processed 106291 packets.
+Snort ran for 0 days 0 hours 13 minutes 54 seconds
+   Pkts/min:         8176
+   Pkts/sec:          127
+===============================================================================
+Memory usage summary:
+  Total non-mmapped bytes (arena):       2297856
+  Bytes in mapped regions (hblkhd):      17252352
+  Total allocated space (uordblks):      2072480
+  Total free space (fordblks):           225376
+  Topmost releasable block (keepcost):   68048
+===============================================================================
+Packet I/O Totals:
+   Received:       106430
+   Analyzed:       106291 ( 99.869%)
+    Dropped:            0 (  0.000%)
+   Filtered:            0 (  0.000%)
+Outstanding:          139 (  0.131%)
+   Injected:            0
+===============================================================================
+Breakdown by protocol (includes rebuilt packets):
+        Eth:       106291 (100.000%)
+       VLAN:            0 (  0.000%)
+        IP4:       102655 ( 96.579%)
+       Frag:            0 (  0.000%)
+       ICMP:            0 (  0.000%)
+        UDP:        86845 ( 81.705%)
+        TCP:        11979 ( 11.270%)
+        IP6:         2980 (  2.804%)
+    IP6 Ext:         2975 (  2.799%)
+   IP6 Opts:           73 (  0.069%)
+      Frag6:            0 (  0.000%)
+      ICMP6:          286 (  0.269%)
+       UDP6:         1370 (  1.289%)
+       TCP6:         1246 (  1.172%)
+     Teredo:            0 (  0.000%)
+    ICMP-IP:            0 (  0.000%)
+    IP4/IP4:            0 (  0.000%)
+    IP4/IP6:            0 (  0.000%)
+    IP6/IP4:            0 (  0.000%)
+    IP6/IP6:            0 (  0.000%)
+        GRE:            0 (  0.000%)
+    GRE Eth:            0 (  0.000%)
+   GRE VLAN:            0 (  0.000%)
+    GRE IP4:            0 (  0.000%)
+    GRE IP6:            0 (  0.000%)
+GRE IP6 Ext:            0 (  0.000%)
+   GRE PPTP:            0 (  0.000%)
+    GRE ARP:            0 (  0.000%)
+    GRE IPX:            0 (  0.000%)
+   GRE Loop:            0 (  0.000%)
+       MPLS:            0 (  0.000%)
+        ARP:          619 (  0.582%)
+        IPX:            0 (  0.000%)
+   Eth Loop:            0 (  0.000%)
+   Eth Disc:            0 (  0.000%)
+   IP4 Disc:         3785 (  3.561%)
+   IP6 Disc:           78 (  0.073%)
+   TCP Disc:            0 (  0.000%)
+   UDP Disc:            0 (  0.000%)
+  ICMP Disc:            0 (  0.000%)
+All Discard:         3863 (  3.634%)
+      Other:           83 (  0.078%)
+Bad Chk Sum:         8490 (  7.988%)
+    Bad TTL:            0 (  0.000%)
+     S5 G 1:            0 (  0.000%)
+     S5 G 2:            0 (  0.000%)
+      Total:       106291
+===============================================================================
+Action Stats:
+     Alerts:            3 (  0.003%)
+     Logged:            3 (  0.003%)
+     Passed:            0 (  0.000%)
+Limits:
+      Match:            0
+      Queue:            0
+        Log:            0
+      Event:            0
+      Alert:            0
+Verdicts:
+      Allow:       106291 ( 99.869%)
+      Block:            0 (  0.000%)
+    Replace:            0 (  0.000%)
+  Whitelist:            0 (  0.000%)
+  Blacklist:            0 (  0.000%)
+     Ignore:            0 (  0.000%)
+      Retry:            0 (  0.000%)
+===============================================================================
+Snort exiting
+```
+
+
 
 ---
 
 
 Aller au répertoire /var/log/snort. Ouvrir le fichier `alert`. Vérifier qu'il y ait des alertes pour votre nom ou mot choisi.
 
-**Question 7: A quoi ressemble l'alerte ? Qu'est-ce que chaque élément de l'alerte veut dire ? Décrivez-la en détail !**
+**Question 7**: A quoi ressemble l'alerte ? Qu'est-ce que chaque élément de l'alerte veut dire ? Décrivez-la en détail !
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+![](images/question_4.jpg)
+
+Le message afficher (dans le fichier `alert`, première capture)  nous donne un résumé du paquet capturé.
 
 ---
 
@@ -370,11 +574,55 @@ Aller au répertoire /var/log/snort. Ouvrir le fichier `alert`. Vérifier qu'il 
 
 Ecrire une règle qui journalise (sans alerter) un message à chaque fois que Wikipedia est visité **DEPUIS VOTRE** station. **Ne pas utiliser une règle qui détecte un string ou du contenu**.
 
-**Question 8: Quelle est votre règle ? Où le message a-t'il été journalisé ? Qu'est-ce qui a été journalisé ?**
+**Question 8**: Quelle est votre règle ? Où le message a-t'il été journalisé ? Qu'est-ce qui a été journalisé ?
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+L'adresse IP de Wikipédia que nous avons obtenue avec `host -t A wikipedia.org` est `91.198.174.192`, mais Wikipédia comme tous les grands site ont plusieurs adresse IP, il faudrait donc toutes les lister. Il faudrait également lister les adresses IPv6 car Wikipédia réponds également en IPv6.
+
+```snortRules
+alert tcp 192.168.1.116 any -> 91.198.174.192 80,443 (msg:"Wikipedia visited"; sid:4000016; rev:1;)
+```
+
+Un autre possibilité aurait été de détecté la présence de la chaine `Host: www.wikipedia.org` mais cela ne marcherais que pour le HTTP et pas le HTTPS.
+
+Nous avons également tester la règle suivante, elle détecte le nom d'hôte dans le handshake TLS sur le nom d'hôte, cependant avec cette règle il y aura beaucoup de faut positif (entre autre tous les sites web en http possédant un lien vers Wikipédia). Pour l'http il détecte le nom d'hôte dans l'en-tête http. Nous ne recommandons pas cette règle à cause du nombre de faux positif.
+
+```
+alert tcp 192.168.1.116 any -> any any  (msg:"Wikipedia visited"; content:"wikipedia.org"; sid:4000016; rev:1;)
+```
+
+
+```
+Gwendoline Dössegger, [30.03.20 18:24]
+[**] [1:4000016:1] Wikipedia visited [**]
+[Priority: 0] 
+03/30-18:23:03.420279 192.168.1.116:57365 -> 91.198.174.192:443
+TCP TTL:128 TOS:0x0 ID:21696 IpLen:20 DgmLen:40 DF
+***A**** Seq: 0x7CBB0A9E  Ack: 0x5340ACC6  Win: 0x204  TcpLen: 20
+
+[**] [1:4000016:1] Wikipedia visited [**]
+[Priority: 0] 
+03/30-18:23:03.421128 192.168.1.116:57365 -> 91.198.174.192:443
+TCP TTL:128 TOS:0x0 ID:21697 IpLen:20 DgmLen:40 DF
+***A**** Seq: 0x7CBB0A9E  Ack: 0x5340B941  Win: 0x204  TcpLen: 20
+
+[**] [1:4000016:1] Wikipedia visited [**]
+[Priority: 0] 
+03/30-18:23:04.987558 192.168.1.116:57365 -> 91.198.174.192:443
+TCP TTL:128 TOS:0x0 ID:21698 IpLen:20 DgmLen:216 DF
+***AP*** Seq: 0x7CBB0A9E  Ack: 0x5340B941  Win: 0x204  TcpLen: 20
+
+[**] [1:4000016:1] Wikipedia visited [**]
+[Priority: 0] 
+03/30-18:23:05.019781 192.168.1.116:57365 -> 91.198.174.192:443
+TCP TTL:128 TOS:0x0 ID:21699 IpLen:20 DgmLen:40 DF
+***A**** Seq: 0x7CBB0B4E  Ack: 0x5340BA3C  Win: 0x203  TcpLen: 20
+```
+
+
 
 ---
 
@@ -384,11 +632,21 @@ Ecrire une règle qui journalise (sans alerter) un message à chaque fois que Wi
 
 Ecrire une règle qui alerte à chaque fois que votre système reçoit un ping depuis une autre machine (je sais que la situation actuelle du Covid-19 ne vous permet pas de vous mettre ensemble... utilisez votre imagination pour trouver la solution à cette question !). Assurez-vous que **ça n'alerte pas** quand c'est vous qui envoyez le ping vers un autre système !
 
-**Question 9: Quelle est votre règle ?**
+**Question 9**: Quelle est votre règle ?
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+```
+alert icmp any any -> 192.168.1.116 any (msg:"ICMP Packet"; itype:8; sid:4000020; rev:3;)
+```
+
+```
+
+```
+
+
 
 ---
 
@@ -397,16 +655,15 @@ Ecrire une règle qui alerte à chaque fois que votre système reçoit un ping d
 
 ---
 
-**Reponse :**  
+**Reponse :**  en détectant les ECHO Request à destination de notre PC
 
 ---
-
 
 **Question 11: Où le message a-t-il été journalisé ?**
 
 ---
 
-**Reponse :**  
+**Reponse :**  Dans alert
 
 ---
 
@@ -416,6 +673,34 @@ Ecrire une règle qui alerte à chaque fois que votre système reçoit un ping d
 ---
 
 **Reponse :**  
+
+```
+[**] [1:4000020:3] ICMP Packet [**]
+[Priority: 0] 
+03/30-18:40:19.073953 192.168.1.131 -> 192.168.1.116
+ICMP TTL:128 TOS:0x0 ID:33937 IpLen:20 DgmLen:60
+Type:8  Code:0  ID:1   Seq:1  ECHO
+
+[**] [1:4000020:3] ICMP Packet [**]
+[Priority: 0] 
+03/30-18:40:20.076002 192.168.1.131 -> 192.168.1.116
+ICMP TTL:128 TOS:0x0 ID:33938 IpLen:20 DgmLen:60
+Type:8  Code:0  ID:1   Seq:2  ECHO
+
+[**] [1:4000020:3] ICMP Packet [**]
+[Priority: 0] 
+03/30-18:40:21.081604 192.168.1.131 -> 192.168.1.116
+ICMP TTL:128 TOS:0x0 ID:33939 IpLen:20 DgmLen:60
+Type:8  Code:0  ID:1   Seq:3  ECHO
+
+[**] [1:4000020:3] ICMP Packet [**]
+[Priority: 0] 
+03/30-18:40:22.084889 192.168.1.131 -> 192.168.1.116
+ICMP TTL:128 TOS:0x0 ID:33940 IpLen:20 DgmLen:60
+Type:8  Code:0  ID:1   Seq:4  ECHO
+```
+
+
 
 ---
 
@@ -430,6 +715,38 @@ Modifier votre règle pour que les pings soient détectés dans les deux sens.
 ---
 
 **Reponse :**  
+
+```
+alert icmp any any <> 192.168.1.116 any (msg:"ICMP Packet"; itype:8; sid:4000020; rev:3;)
+```
+
+```
+[**] [1:4000020:3] ICMP Packet [**]
+[Priority: 0] 
+03/30-18:44:56.871044 192.168.1.131 -> 192.168.1.116
+ICMP TTL:128 TOS:0x0 ID:33942 IpLen:20 DgmLen:60
+Type:8  Code:0  ID:1   Seq:6  ECHO
+
+[**] [1:4000020:3] ICMP Packet [**]
+[Priority: 0] 
+03/30-18:44:57.877421 192.168.1.131 -> 192.168.1.116
+ICMP TTL:128 TOS:0x0 ID:33943 IpLen:20 DgmLen:60
+Type:8  Code:0  ID:1   Seq:7  ECHO
+
+[**] [1:4000020:3] ICMP Packet [**]
+[Priority: 0] 
+03/30-18:45:03.362898 192.168.1.116 -> 8.8.8.8
+ICMP TTL:128 TOS:0x0 ID:5954 IpLen:20 DgmLen:60
+Type:8  Code:0  ID:1   Seq:984  ECHO
+
+[**] [1:4000020:3] ICMP Packet [**]
+[Priority: 0] 
+03/30-18:45:04.379672 192.168.1.116 -> 8.8.8.8
+ICMP TTL:128 TOS:0x0 ID:5955 IpLen:20 DgmLen:60
+Type:8  Code:0  ID:1   Seq:985  ECHO
+```
+
+
 
 ---
 
