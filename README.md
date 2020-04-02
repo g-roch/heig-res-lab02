@@ -286,11 +286,13 @@ Vous pouvez aussi utiliser des captures Wireshark ou des fichiers snort.log.xxxx
 
 ### Essayer de répondre à ces questions en quelques mots :
 
-**Question 1: Qu'est ce que signifie les "preprocesseurs" dans le contexte de Snort ?**
+**Question 1: Qu'est ce que signifie les "préprocesseurs" dans le contexte de Snort ?**
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+Ce sont des outils de pré-analyse du traffic pour permettre l'analyse de traffic complexe.
 
 ---
 
@@ -298,7 +300,11 @@ Vous pouvez aussi utiliser des captures Wireshark ou des fichiers snort.log.xxxx
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+Parce que nous n'avons pas configuré de préprocesseur, ce qui, en production, serait une erreur de configuration.
+
+Nous pouvons pour les tests ignorés cette avertissement, mais en production il faudrait y remédier.
 
 ---
 
@@ -318,7 +324,7 @@ alert tcp any any -> any any (msg:"Mon nom!"; content:"Rubinstein"; sid:4000015;
 
 **Réponse :**  
 
-Pour chaque paquet TCP, il vérifie que le paquet contienne la string `Rubinstein` . Si c'est le cas il lève une alert avec comme message `Mon nom!`.
+Pour chaque paquet TCP, il vérifie que le paquet contienne la string `Rubinstein` . Si c'est le cas il lève une alerte avec comme message `Mon nom!`.
 
 ---
 
@@ -420,7 +426,7 @@ Decoding Ethernet
 Commencing packet processing (pid=11366)
 ```
 
-On vois des indications sur ce que `snort` a chargé.
+On vois des indications sur ce que `snort` a chargé. Dans notre cas il a bien chargé 1 règle, celle que nous venons d'écrire.
 
 ---
 
@@ -548,7 +554,7 @@ Verdicts:
 Snort exiting
 ```
 
-
+On peux y voir les statiques d'analyse des paquets par protocoles et les statistiques émission d'alerte.
 
 ---
 
@@ -567,8 +573,7 @@ Le message afficher (dans le fichier `alert`, première capture)  nous donne un 
 
 ---
 
-
---
+---
 
 ### Detecter une visite à Wikipedia
 
@@ -580,23 +585,13 @@ Ecrire une règle qui journalise (sans alerter) un message à chaque fois que Wi
 
 **Réponse :**  
 
-L'adresse IP de Wikipédia que nous avons obtenue avec `host -t A wikipedia.org` est `91.198.174.192`, mais Wikipédia comme tous les grands site ont plusieurs adresse IP, il faudrait donc toutes les lister. Il faudrait également lister les adresses IPv6 car Wikipédia réponds également en IPv6.
+L'adresse IP de Wikipédia que nous avons obtenue avec `host -t A wikipedia.org` est `91.198.174.192`, mais Wikipédia comme tous les grands site ont plusieurs adresse IP, il faudrait donc toutes les lister. Il faudrait également lister les adresses IPv6 car Wikipédia réponds également en IPv6. Il y a également un risque de faux positif, si par exemple les serveurs de Wikipédia héberge un autre site web et qu'un utilisateur visite cet autre site web.
 
 ```snortRules
 alert tcp 192.168.1.116 any -> 91.198.174.192 80,443 (msg:"Wikipedia visited"; sid:4000016; rev:1;)
 ```
 
-Un autre possibilité aurait été de détecté la présence de la chaine `Host: www.wikipedia.org` mais cela ne marcherais que pour le HTTP et pas le HTTPS.
-
-Nous avons également tester la règle suivante, elle détecte le nom d'hôte dans le handshake TLS sur le nom d'hôte, cependant avec cette règle il y aura beaucoup de faut positif (entre autre tous les sites web en http possédant un lien vers Wikipédia). Pour l'http il détecte le nom d'hôte dans l'en-tête http. Nous ne recommandons pas cette règle à cause du nombre de faux positif.
-
 ```
-alert tcp 192.168.1.116 any -> any any  (msg:"Wikipedia visited"; content:"wikipedia.org"; sid:4000016; rev:1;)
-```
-
-
-```
-Gwendoline Dössegger, [30.03.20 18:24]
 [**] [1:4000016:1] Wikipedia visited [**]
 [Priority: 0] 
 03/30-18:23:03.420279 192.168.1.116:57365 -> 91.198.174.192:443
@@ -608,27 +603,23 @@ TCP TTL:128 TOS:0x0 ID:21696 IpLen:20 DgmLen:40 DF
 03/30-18:23:03.421128 192.168.1.116:57365 -> 91.198.174.192:443
 TCP TTL:128 TOS:0x0 ID:21697 IpLen:20 DgmLen:40 DF
 ***A**** Seq: 0x7CBB0A9E  Ack: 0x5340B941  Win: 0x204  TcpLen: 20
-
-[**] [1:4000016:1] Wikipedia visited [**]
-[Priority: 0] 
-03/30-18:23:04.987558 192.168.1.116:57365 -> 91.198.174.192:443
-TCP TTL:128 TOS:0x0 ID:21698 IpLen:20 DgmLen:216 DF
-***AP*** Seq: 0x7CBB0A9E  Ack: 0x5340B941  Win: 0x204  TcpLen: 20
-
-[**] [1:4000016:1] Wikipedia visited [**]
-[Priority: 0] 
-03/30-18:23:05.019781 192.168.1.116:57365 -> 91.198.174.192:443
-TCP TTL:128 TOS:0x0 ID:21699 IpLen:20 DgmLen:40 DF
-***A**** Seq: 0x7CBB0B4E  Ack: 0x5340BA3C  Win: 0x203  TcpLen: 20
 ```
 
+Nous constatons que seul les requêtes HTTP pour Wikipédia sont enregistré dans le pcap.
 
+Un autre possibilité aurait été de détecté la présence de la chaine `Host: www.wikipedia.org` mais cela ne marcherais que pour le HTTP et pas le HTTPS (et ce n'était pas demandé dans la consigne).
+
+Nous avons également tester la règle suivante, elle détecte le nom d'hôte dans le handshake TLS sur le nom d'hôte, cependant avec cette règle il y aura beaucoup de faut positif (entre autre tous les sites web en http possédant un lien vers Wikipédia). Pour l'http il détecte le nom d'hôte dans l'en-tête http. Nous ne recommandons pas cette règle à cause du nombre de faux positif.
+
+```
+alert tcp 192.168.1.116 any -> any any  (msg:"Wikipedia visited"; content:"wikipedia.org"; sid:4000016; rev:1;)
+```
 
 ---
 
---
+----
 
-### Detecter un ping d'un autre système
+### Détecter un ping d'un autre système
 
 Ecrire une règle qui alerte à chaque fois que votre système reçoit un ping depuis une autre machine (je sais que la situation actuelle du Covid-19 ne vous permet pas de vous mettre ensemble... utilisez votre imagination pour trouver la solution à cette question !). Assurez-vous que **ça n'alerte pas** quand c'est vous qui envoyez le ping vers un autre système !
 
@@ -642,12 +633,6 @@ Ecrire une règle qui alerte à chaque fois que votre système reçoit un ping d
 alert icmp any any -> 192.168.1.116 any (msg:"ICMP Packet"; itype:8; sid:4000020; rev:3;)
 ```
 
-```
-
-```
-
-
-
 ---
 
 
@@ -655,7 +640,9 @@ alert icmp any any -> 192.168.1.116 any (msg:"ICMP Packet"; itype:8; sid:4000020
 
 ---
 
-**Reponse :**  en détectant les ECHO Request à destination de notre PC
+**Réponse :** 
+
+en détectant les `ICMP echo Request` à destination de notre PC (`itype:8`)
 
 ---
 
@@ -663,16 +650,17 @@ alert icmp any any -> 192.168.1.116 any (msg:"ICMP Packet"; itype:8; sid:4000020
 
 ---
 
-**Reponse :**  Dans alert
+**Réponse :**  
+
+Dans le fichier `alert`. Une copie du paquet complet est enregistrer au format pcap dans le fichier `snort.log.xxxx`
 
 ---
-
 
 **Question 12: Qu'est-ce qui a été journalisé ?**
 
 ---
 
-**Reponse :**  
+**Réponse :**  
 
 ```
 [**] [1:4000020:3] ICMP Packet [**]
@@ -700,21 +688,23 @@ ICMP TTL:128 TOS:0x0 ID:33940 IpLen:20 DgmLen:60
 Type:8  Code:0  ID:1   Seq:4  ECHO
 ```
 
-
+Les `echo request` uniquement. Les `echo reply` n'ont pas été enregistré.
 
 ---
 
---
+---
 
 ### Detecter les ping dans les deux sens
 
 Modifier votre règle pour que les pings soient détectés dans les deux sens.
 
-**Question 13: Qu'est-ce que vous avez modifié pour que la règle détecte maintenant le trafic dans les deux senses ?**
+**Question 13: Qu'est-ce que vous avez modifié pour que la règle détecte maintenant le trafic dans les deux sens ?**
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+Nous avons modifier notre règle pour détecter uniquement les ping de et pour notre machine
 
 ```
 alert icmp any any <> 192.168.1.116 any (msg:"ICMP Packet"; itype:8; sid:4000020; rev:3;)
@@ -750,21 +740,25 @@ Type:8  Code:0  ID:1   Seq:985  ECHO
 
 ---
 
-
---
+---
 
 ### Detecter une tentative de login SSH
 
-Essayer d'écrire une règle qui Alerte qu'une tentative de session SSH a été faite depuis la machine d'un voisin (je sais que la situation actuelle du Covid-19 ne vous permet pas de vous mettre ensemble... utilisez votre imagination pour trouver la solution à cette question !). Si vous avez besoin de plus d'information sur ce qui décrit cette tentative (adresses, ports, protocoles), servez-vous de Wireshark pour analyser les échanges lors de la requête de connexion depuis votre voisi.
+Essayer d'écrire une règle qui Alerte qu'une tentative de session SSH a été faite depuis la machine d'un voisin (je sais que la situation actuelle du Covid-19 ne vous permet pas de vous mettre ensemble... utilisez votre imagination pour trouver la solution à cette question !). Si vous avez besoin de plus d'information sur ce qui décrit cette tentative (adresses, ports, protocoles), servez-vous de Wireshark pour analyser les échanges lors de la requête de connexion depuis votre voici.
 
 **Question 14: Quelle est votre règle ? Montrer la règle et expliquer en détail comment elle fonctionne.**
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+```
+alert tcp any any -> 192.168.1.116 22 (msg:"SSH connection"; flags:S; sid:4000021; rev:3;)
+```
+
+Cette règle détecte les paquets tcp à destination de notre ip sur le port 22 (ssh) et ayant le flag SYN.
 
 ---
-
 
 **Question 15: Montrer le message d'alerte enregistré dans le fichier d'alertes.** 
 
@@ -772,9 +766,18 @@ Essayer d'écrire une règle qui Alerte qu'une tentative de session SSH a été 
 
 **Reponse :**  
 
+```
+[**] [1:4000021:1] SSH connection [**]
+[Priority: 0] 
+03/31-18:11:18.783719 192.168.1.131:50379 -> 192.168.1.116:22
+TCP TTL:128 TOS:0x0 ID:1201 IpLen:20 DgmLen:52 DF
+******S* Seq: 0xE1880142  Ack: 0x0  Win: 0xFAF0  TcpLen: 32
+TCP Options (6) => MSS: 1460 NOP WS: 8 NOP NOP SackOK
+```
+
 ---
 
---
+---
 
 ### Analyse de logs
 
@@ -786,6 +789,14 @@ Lancer Wireshark et faire une capture du trafic sur l'interface connectée au br
 
 **Reponse :**  
 
+L'option `-r <file>` permets de charger le contenu du fichier comme si on le lisait depuis une interface réseaux. 
+
+```
+snort -r <file.pcap> -c <rules file>
+```
+
+
+
 ---
 
 Utiliser l'option correcte de Snort pour analyser le fichier de capture Wireshark.
@@ -796,17 +807,21 @@ Utiliser l'option correcte de Snort pour analyser le fichier de capture Wireshar
 
 **Reponse :**  
 
+Non, aucune différence. On le rejoue le fichier aussi vite que la puissance de calcul de notre ordinateur le permet et pas en vitesse réel.
+
 ---
 
 **Question 18: Est-ce que des alertes sont aussi enregistrées dans le fichier d'alertes?**
 
 ---
 
-**Reponse :**  
+**Réponse :** 
+
+Oui
 
 ---
 
---
+---
 
 ### Contournement de la détection
 
@@ -816,16 +831,65 @@ Faire des recherches à propos des outils `fragroute` et `fragtest`.
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+Ce sont des outils de modification du trafic pour que les IDS n'arrive pas (ou moins bien) à détecté le trafic.
 
 ---
-
 
 **Question 21: Quel est le principe de fonctionnement ?**
 
 ---
 
 **Reponse :**  
+
+ Il ré-ordonne, fragment et modifie le trafic. Bien sur l'objectif est que le destinataire comprennent quand même les paquets.
+
+##### Exemple de requête HTTP sans fragroute
+
+```sequence
+participant Client Kali AS cli
+participant Serveur www.roch.earth AS srv
+cli -> srv: TCP SYN
+srv -> cli: TCP SYN ACK
+cli -> srv: TCP ACK
+cli -> srv: HTTP GET / HTTP/1.1
+srv -> cli: TCP ACK
+srv -> cli: HTTP HTTP/1.1 200 OK (+content)
+cli -> srv: TCP ACK
+cli -> srv: TCP FIN ACK
+srv -> cli: TCP FIN ACK
+cli -> srv: TCP ACK
+
+
+```
+
+##### Exemple de requête HTTP *avec* fragroute
+
+```sequence
+participant Client Kali AS cli
+participant Serveur www.roch.earth AS srv
+cli -> srv: TCP SYN
+srv -> cli: TCP SYN ACK
+cli -> srv: TCP ACK
+cli -> srv: HTTP GET / HTTP/1.1
+Note right of cli: L'envoie se fait par paquet de 2 bytes dans le désordre
+srv -> cli: TCP ACK
+Note left of cli: Begin loop
+srv -> cli: TCP packet empty
+cli -> srv: TCP packet size 2 bytes
+Note left of cli: Begin loop
+Note right of cli: La boucle s'effectue pendant environ 5 secondes
+srv -> cli: HTTP HTTP/1.1 200 OK (+content)
+Note right of cli: L'envoie de la réponse se fait sans fragmentation supplémentaire
+cli -> srv: TCP ACK
+cli -> srv: TCP FIN ACK
+srv -> cli: TCP FIN ACK
+cli -> srv: TCP ACK
+
+```
+
+Suite à notre analyse nous constatons que l'envoie du paquet se fait de manière masquée pour Snort, mais la réponse du serveur ne passe pas dans un snort avant l'envoie sur le réseau, et nous arrive donc sans masquage particulier.
 
 ---
 
@@ -834,13 +898,14 @@ Faire des recherches à propos des outils `fragroute` et `fragtest`.
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+C'est la réponse de Snort vis-à-vis des outils précédent. Il cherche à défragmenter les paquets pour permettre à Snort de les analyser correctement.
 
 ---
 
 
 Reprendre l'exercice de la partie [Trouver votre nom](#trouver-votre-nom-). Essayer d'offusquer la détection avec `fragroute`.
-
 
 **Question 23: Quel est le résultat de votre tentative ?**
 
@@ -848,26 +913,46 @@ Reprendre l'exercice de la partie [Trouver votre nom](#trouver-votre-nom-). Essa
 
 **Reponse :**  
 
+Nous avons tester un téléchargement d'une page en HTTP, sans fragroute la communication est détecter par Snort.
+
+Nous avons lancer fragroute avec le fichier de config suivant : 
+
+```
+tcp_seg 8 new
+ip_frag 8
+ip_chaff dup
+order random
+print
+```
+
+Et avec fragroute, Snort vois toujours passer les paquets de réponse HTTP. (Ci-dessous la capture de la réponse HTTP, alors qu'en début de laboratoire nous capturions le GET HTTP)
+
+![](images/sans-preproc.PNG)
+
 ---
 
 
 Modifier le fichier `myrules.rules` pour que snort utiliser le `Frag3 Preprocessor` et refaire la tentative.
 
-
 **Question 24: Quel est le résultat ?**
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+Snort détecte sans problème notre téléchargement, mais il détecte en plus (comme au début) la requête HTTP.
+
+![](images/avec-preproc.PNG)
 
 ---
-
 
 **Question 25: A quoi sert le `SSL/TLS Preprocessor` ?**
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+Analyser la partie non-chiffrée de SSL/TLS. (header, handshake, ...)
 
 ---
 
@@ -876,20 +961,22 @@ Modifier le fichier `myrules.rules` pour que snort utiliser le `Frag3 Preprocess
 
 ---
 
-**Reponse :**  
+**Réponse :**  
+
+Permettre la détection des transmission de données sensible (numéro de carte de crédit, de sécurité social, ou regex personnalisé).
 
 ---
 
 ### Conclusions
 
-
-**Question 27: Donnez-nous vos conclusions et votre opinion à propos de snort**
-
----
-
-**Reponse :**  
+**Question 27: Donnez-nous vos conclusions et votre opinion à propos de Snort**
 
 ---
 
+**Réponse :**  
+
+Snort est un IDS puissant, mais la grande difficulté n'est pas dans la prise en main, mais dans l'écriture des règles de détection. nous sommes convaincus par l'utilité de Snort en entreprise pour s'assurée que les règles de sécurité ne soient pas transgressées.
+
+---
 
 <sub>This guide draws heavily on http://cs.mvnu.edu/twiki/bin/view/Main/CisLab82014</sub>
