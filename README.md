@@ -1,3 +1,7 @@
+Auteurs : Gwendoline Dössegger & Gabriel Roch
+
+---
+
 # Teaching-HEIGVD-SRX-2020-Laboratoire-IDS
 
 **Ce travail de laboratoire est à faire en équipes de 2 personnes** (oui... en remote...). Je vous laisse vous débrouiller ;-)
@@ -280,7 +284,7 @@ tcpdump -r /var/log/snort/snort.log.xxxxxxxxxx
 
 Vous pouvez aussi utiliser des captures Wireshark ou des fichiers snort.log.xxxxxxxxx comme source d'analyse por Snort.
 
-## Exercises
+## Exercices
 
 **Réaliser des captures d'écran des exercices suivants et les ajouter à vos réponses.**
 
@@ -292,7 +296,7 @@ Vous pouvez aussi utiliser des captures Wireshark ou des fichiers snort.log.xxxx
 
 **Réponse :**  
 
-Ce sont des outils de pré-analyse du traffic pour permettre l'analyse de traffic complexe.
+Ce sont des outils de pré-analyse du trafic pour permettre l'analyse de trafic complexe.
 
 ---
 
@@ -302,13 +306,13 @@ Ce sont des outils de pré-analyse du traffic pour permettre l'analyse de traffi
 
 **Réponse :**  
 
-Parce que nous n'avons pas configuré de préprocesseur, ce qui, en production, serait une erreur de configuration.
+Parce que nous n'avons pas configuré de préprocesseur ce qui, en production, serait une erreur de configuration.
 
-Nous pouvons pour les tests ignorés cette avertissement, mais en production il faudrait y remédier.
+Nous pouvons pour les tests ignorer cette avertissement, mais en production il faudrait y remédier.
 
 ---
 
---
+---
 
 ### Trouver votre nom :
 
@@ -426,7 +430,7 @@ Decoding Ethernet
 Commencing packet processing (pid=11366)
 ```
 
-On vois des indications sur ce que `snort` a chargé. Dans notre cas il a bien chargé 1 règle, celle que nous venons d'écrire.
+On voit des indications sur ce que `snort` a chargé. Dans notre cas il a bien chargé 1 règle, celle que nous venons d'écrire. Le reste des informations représentes des compteurs des différentes règles qui sont chargées lors de l'execution de snort. Par exemple, le nombre de règles concernant un port tcp pour avec une source et une destination renseignées.
 
 ---
 
@@ -438,7 +442,7 @@ Aller à un site web contenant dans son text votre nom ou votre mot clé que vou
 
 **Réponse :**  
 
-(Nous avons remplacer la chaine `Rubinstein` par `roch`, car nous connaissons un site web http contenant cette chaine)
+(Nous avons remplacé la chaine `Rubinstein` par `roch`, car nous connaissons un site web http contenant cette chaine)
 
 
 
@@ -446,7 +450,7 @@ Aller à un site web contenant dans son text votre nom ou votre mot clé que vou
 
 
 
-Le message afficher dans le fichier de log contient l'ensemble du paquet correspondant à la règle snort (il y a 3 paquets, car nous avons chargé la page 3x). Ce qui est afficher est simplement l'interprétation de `tcpdump` des paquets
+Le message affiché dans le fichier de log contient l'ensemble du paquet correspondant à la règle snort (il y a 3 paquets, car nous avons chargé la page 3x). Ce qui est affiché est simplement l'interprétation de `tcpdump` des paquets
 
 ---
 
@@ -554,7 +558,7 @@ Verdicts:
 Snort exiting
 ```
 
-On peux y voir les statiques d'analyse des paquets par protocoles et les statistiques émission d'alerte.
+On peut y voir les statiques d'analyse des paquets par protocoles et les statistiques émission d'alerte.
 
 ---
 
@@ -571,6 +575,14 @@ Aller au répertoire /var/log/snort. Ouvrir le fichier `alert`. Vérifier qu'il 
 
 Le message afficher (dans le fichier `alert`, première capture)  nous donne un résumé du paquet capturé.
 
+Le message de l'alerte : ```msg: Mon nom!```
+
+Adresse source + port : ```192.168.1.116:57127```
+
+Adresse dest + port : ```80.74.149.75:80```
+
+Le reste représente des informations sur le paquet comme la taille des données, la référence du 	ACK, l'ID du paquet.... 
+
 ---
 
 ---
@@ -585,7 +597,7 @@ Ecrire une règle qui journalise (sans alerter) un message à chaque fois que Wi
 
 **Réponse :**  
 
-L'adresse IP de Wikipédia que nous avons obtenue avec `host -t A wikipedia.org` est `91.198.174.192`, mais Wikipédia comme tous les grands site ont plusieurs adresse IP, il faudrait donc toutes les lister. Il faudrait également lister les adresses IPv6 car Wikipédia réponds également en IPv6. Il y a également un risque de faux positif, si par exemple les serveurs de Wikipédia héberge un autre site web et qu'un utilisateur visite cet autre site web.
+L'adresse IP de Wikipédia que nous avons obtenue avec `host -t A wikipedia.org` est `91.198.174.192`. Pour Wikipédia comme tous les grands sites ont plusieurs adresses IP, il faudrait donc toutes les lister. Il faudrait également lister les adresses IPv6 car Wikipédia réponds également en IPv6. Il y a également un risque de faux positif, si par exemple les serveurs de Wikipédia héberge un autre site web et qu'un utilisateur visite cet autre site web.
 
 ```snortRules
 alert tcp 192.168.1.116 any -> 91.198.174.192 80,443 (msg:"Wikipedia visited"; sid:4000016; rev:1;)
@@ -605,11 +617,11 @@ TCP TTL:128 TOS:0x0 ID:21697 IpLen:20 DgmLen:40 DF
 ***A**** Seq: 0x7CBB0A9E  Ack: 0x5340B941  Win: 0x204  TcpLen: 20
 ```
 
-Nous constatons que seul les requêtes HTTP pour Wikipédia sont enregistré dans le pcap.
+Nous constatons que seules les requêtes HTTP pour Wikipédia sont enregistrées dans le pcap.
 
-Un autre possibilité aurait été de détecté la présence de la chaine `Host: www.wikipedia.org` mais cela ne marcherais que pour le HTTP et pas le HTTPS (et ce n'était pas demandé dans la consigne).
+Un autre possibilité aurait été de détecter la présence de la chaine `Host: www.wikipedia.org` mais cela ne marcherait que pour le HTTP et pas le HTTPS (et ce n'était pas demandé dans la consigne).
 
-Nous avons également tester la règle suivante, elle détecte le nom d'hôte dans le handshake TLS sur le nom d'hôte, cependant avec cette règle il y aura beaucoup de faut positif (entre autre tous les sites web en http possédant un lien vers Wikipédia). Pour l'http il détecte le nom d'hôte dans l'en-tête http. Nous ne recommandons pas cette règle à cause du nombre de faux positif.
+Nous avons également testé la règle suivante. Elle détecte le nom d'hôte dans le handshake TLS sur le nom d'hôte. Cependant avec cette règle, il y aura beaucoup de faux positif (entre tous les sites web en http possédant un lien vers Wikipédia). Pour l'http, il détecte le nom d'hôte dans l'en-tête http. Nous ne recommandons pas cette règle à cause du nombre de faux positif.
 
 ```
 alert tcp 192.168.1.116 any -> any any  (msg:"Wikipedia visited"; content:"wikipedia.org"; sid:4000016; rev:1;)
@@ -642,7 +654,7 @@ alert icmp any any -> 192.168.1.116 any (msg:"ICMP Packet"; itype:8; sid:4000020
 
 **Réponse :** 
 
-en détectant les `ICMP echo Request` à destination de notre PC (`itype:8`)
+En détectant les `ICMP echo Request` à destination de notre PC (`itype:8`) uniquement.
 
 ---
 
@@ -688,7 +700,7 @@ ICMP TTL:128 TOS:0x0 ID:33940 IpLen:20 DgmLen:60
 Type:8  Code:0  ID:1   Seq:4  ECHO
 ```
 
-Les `echo request` uniquement. Les `echo reply` n'ont pas été enregistré.
+Ceci représente les `echo request` uniquement. Les `echo reply` n'ont pas été enregistré.
 
 ---
 
@@ -704,7 +716,7 @@ Modifier votre règle pour que les pings soient détectés dans les deux sens.
 
 **Réponse :**  
 
-Nous avons modifier notre règle pour détecter uniquement les ping de et pour notre machine
+Nous avons modifié notre règle pour détecter uniquement les ping de et pour notre machine
 
 ```
 alert icmp any any <> 192.168.1.116 any (msg:"ICMP Packet"; itype:8; sid:4000020; rev:3;)
@@ -789,7 +801,7 @@ Lancer Wireshark et faire une capture du trafic sur l'interface connectée au br
 
 **Reponse :**  
 
-L'option `-r <file>` permets de charger le contenu du fichier comme si on le lisait depuis une interface réseaux. 
+L'option `-r <file>` permet de charger le contenu du fichier comme si on le lisait depuis une interface réseaux. 
 
 ```
 snort -r <file.pcap> -c <rules file>
@@ -807,7 +819,7 @@ Utiliser l'option correcte de Snort pour analyser le fichier de capture Wireshar
 
 **Reponse :**  
 
-Non, aucune différence. On le rejoue le fichier aussi vite que la puissance de calcul de notre ordinateur le permet et pas en vitesse réel.
+Non, aucune différence. On rejoue le fichier aussi vite que la puissance de calcul de notre ordinateur le permet et pas en vitesse réel.
 
 ---
 
@@ -833,7 +845,7 @@ Faire des recherches à propos des outils `fragroute` et `fragtest`.
 
 **Réponse :**  
 
-Ce sont des outils de modification du trafic pour que les IDS n'arrive pas (ou moins bien) à détecté le trafic.
+Ce sont des outils de modification du trafic pour que les IDS n'arrive pas (ou moins bien) à détecter le trafic.
 
 ---
 
@@ -843,7 +855,7 @@ Ce sont des outils de modification du trafic pour que les IDS n'arrive pas (ou m
 
 **Reponse :**  
 
- Il ré-ordonne, fragment et modifie le trafic. Bien sur l'objectif est que le destinataire comprennent quand même les paquets.
+ Il ré-ordonne, fragment et modifie le trafic. Bien sûr, l'objectif est que le destinataire comprennent quand même les paquets.
 
 ##### Exemple de requête HTTP sans fragroute
 
@@ -889,7 +901,7 @@ cli -> srv: TCP ACK
 
 ```
 
-Suite à notre analyse nous constatons que l'envoie du paquet se fait de manière masquée pour Snort, mais la réponse du serveur ne passe pas dans un snort avant l'envoie sur le réseau, et nous arrive donc sans masquage particulier.
+Suite à notre analyse, nous constatons que l'envoie du paquet se fait de manière masquée pour Snort. Cependant la réponse du serveur ne passe pas dans snort avant l'envoie sur le réseau, et nous arrive donc sans masquage particulier.
 
 ---
 
@@ -913,9 +925,9 @@ Reprendre l'exercice de la partie [Trouver votre nom](#trouver-votre-nom-). Essa
 
 **Reponse :**  
 
-Nous avons tester un téléchargement d'une page en HTTP, sans fragroute la communication est détecter par Snort.
+Nous avons testé un téléchargement d'une page en HTTP, sans fragroute la communication est détecter par Snort.
 
-Nous avons lancer fragroute avec le fichier de config suivant : 
+Nous avons lancé fragroute avec le fichier de config suivant : 
 
 ```
 tcp_seg 8 new
@@ -925,7 +937,7 @@ order random
 print
 ```
 
-Et avec fragroute, Snort vois toujours passer les paquets de réponse HTTP. (Ci-dessous la capture de la réponse HTTP, alors qu'en début de laboratoire nous capturions le GET HTTP)
+Et avec fragroute, Snort voit toujours passer les paquets de réponse HTTP. (Ci-dessous la capture de la réponse HTTP, alors qu'en début de laboratoire nous capturions le GET HTTP)
 
 ![](images/sans-preproc.PNG)
 
@@ -963,7 +975,7 @@ Analyser la partie non-chiffrée de SSL/TLS. (header, handshake, ...)
 
 **Réponse :**  
 
-Permettre la détection des transmission de données sensible (numéro de carte de crédit, de sécurité social, ou regex personnalisé).
+Permettre la détection des transmission de données sensibles (numéro de carte de crédit, de sécurité social, ou regex personnalisé).
 
 ---
 
@@ -975,7 +987,7 @@ Permettre la détection des transmission de données sensible (numéro de carte 
 
 **Réponse :**  
 
-Snort est un IDS puissant, mais la grande difficulté n'est pas dans la prise en main, mais dans l'écriture des règles de détection. nous sommes convaincus par l'utilité de Snort en entreprise pour s'assurée que les règles de sécurité ne soient pas transgressées.
+Snort est un IDS puissant. La grande difficulté n'est pas dans la prise en main mais dans l'écriture des règles de détection. Nous sommes convaincus par l'utilité de Snort en entreprise pour s'assurer que les règles de sécurité ne soient pas transgressées.
 
 ---
 
